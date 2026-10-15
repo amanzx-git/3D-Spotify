@@ -1,12 +1,12 @@
 
-let music = new Audio('/song/psycho/song1.mp3');
-let songIndex = 0 ;
-let masterPlay = document.getElementById('masterPlay');
-let progressBar = document.getElementById('progressBar');
-let songItems = Array.from(document.getElementsByClassName('songs'));
-let gifitems = Array.from(document.getElementsByClassName('gifItem'));
-let list = Array.from(document.getElementsByClassName('list'));
-let typeIndex=0  ;
+const music = new Audio('song/psycho/song1.mp3');
+let songIndex = 0;
+const masterPlay = document.getElementById('masterPlay');
+const progressBar = document.getElementById('progressBar');
+const songItems = Array.from(document.getElementsByClassName('songs'));
+const gifitems = Array.from(document.getElementsByClassName('gifItem'));
+const list = Array.from(document.getElementsByClassName('list'));
+let typeIndex = 0;
 
 let items = [
     [
@@ -132,126 +132,240 @@ let items = [
     
 ];
 
-alert("Don't Forget To Rotate Your Phone & Hit The Fullscreen Button!!")
+const moodKeys = ['psycho', 'rage', 'romantic', 'cool', 'vibe', 'sad', 'cry', 'badass', 'hardwork', 'happy', 'whore', 'alone'];
+const moodDescriptions = [
+  'Turn up the energy and let the moment take over.',
+  'Big feelings, bigger volume. Let it all out.',
+  'A softer soundtrack for all the butterflies.',
+  'Easygoing sounds for taking it slow.',
+  'Find your rhythm and let the good times roll.',
+  'A little space to feel everything.',
+  'Let the music hold what words cannot.',
+  'Main-character energy, from start to finish.',
+  'Keep your focus and make today count.',
+  'A bright little boost for your day.',
+  'Turn up the confidence and own the room.',
+  'Quiet songs for your own little world.'
+];
+const moodThemes = [
+  ['#8c72e8', '#7356d7', '#eee9ff', '#f7f3ff'],
+  ['#ed806f', '#d65f54', '#ffebe6', '#fff6f2'],
+  ['#e887a9', '#d96791', '#ffe9f0', '#fff5f8'],
+  ['#63a9c7', '#448eae', '#e4f5fa', '#f2fbfd'],
+  ['#5bbba4', '#349b83', '#def5ef', '#f1fbf7'],
+  ['#7796c9', '#5c7db1', '#e7efff', '#f5f8ff'],
+  ['#8297d6', '#657cbf', '#e8ecff', '#f6f7ff'],
+  ['#e39b63', '#cc7b42', '#fff0df', '#fff8ef'],
+  ['#66a987', '#488a68', '#e2f4e9', '#f3faf5'],
+  ['#e9b94e', '#c9962d', '#fff4d9', '#fffaf0'],
+  ['#d977a0', '#bf5885', '#ffe8f1', '#fff5f8'],
+  ['#8290bd', '#66749f', '#e9ecf8', '#f6f7fb']
+];
 
-const mydocument = document.documentElement;
-const btn = document.getElementById('btn');
+const currentArtwork = document.getElementById('currentArtwork');
+const playerArtwork = document.getElementById('playerArtwork');
+const currentTrack = document.getElementById('currentTrack');
+const currentMood = document.getElementById('currentMood');
+const playerTrack = document.getElementById('playerTrack');
+const playerMood = document.getElementById('playerMood');
+const playIcon = masterPlay.querySelector('i');
 
-btn.addEventListener('click' , ()=>{
-  if(btn.textContent == "Full Screen" ){
+function assetPath(path) {
+  return path.replace(/^\/+/, '');
+}
 
-    if(mydocument.requestFullscreen){
-      mydocument.requestFullscreen()
-    
-    }
-
-    btn.textContent = "Exit Screen"
-  }
-  else{
-    if(document.exitFullscreen){
-      document.exitFullscreen()
-     
-    }
-    btn.textContent = "Full Screen"
-  }
-})
-
-
-masterPlay.onclick = ()=>{
-      if(music.paused || music.currentTime <= 0){
-        music.play();
-        masterPlay.classList.remove('fa-play');
-        masterPlay.classList.add('fa-pause');
-      }
-      else{
-        music.pause();
-        masterPlay.classList.remove('fa-pause');
-        masterPlay.classList.add('fa-play');
-      }
-};
-
-music.addEventListener('timeupdate' , ()=>{
-       progress = parseInt((music.currentTime/music.duration)* 100);
-        progressBar.value = progress;
-});
-
-progressBar.addEventListener('change' , ()=>{
-    music.currentTime = progressBar.value * music.duration / 100
-});
-
-
-
-
-let activeLink = ()=>{
-  list.forEach((element)=>{
-  element.classList.remove('active');  
-});
-};
-
-list.forEach((element)=>{
-  element.addEventListener('click', (e)=>{
-    activeLink();
-    typeIndex = parseInt(e.target.id);
-    e.target.classList.add('active');
-
-    songItems.forEach((Element , i)=>{
-      Element.getElementsByClassName('songName')[0].innerText = items[typeIndex][i].name;
-    });
-
-    gifitems.forEach((Element , i)=>{
-      Element.getElementsByTagName('img')[0].src = items[typeIndex][i].gif ;
-    });
-    
-    
-  });
-});
-
-const makeAllPlay = ()=>{
-  Array.from(document.getElementsByClassName('songPlay')).forEach((Element)=>{
-    Element.classList.remove('fa-pause');
-    Element.classList.add('fa-play');
+function setPlaying(isPlaying) {
+  document.body.classList.toggle('is-playing', isPlaying);
+  playIcon.classList.toggle('fa-pause', isPlaying);
+  playIcon.classList.toggle('fa-play', !isPlaying);
+  masterPlay.setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
+  document.getElementById('heroPlay').querySelector('i').className =
+    `fa-solid ${isPlaying ? 'fa-pause' : 'fa-play'}`;
+  document.getElementById('heroPlay').querySelector('span').textContent =
+    isPlaying ? 'Pause this mood' : 'Play this mood';
+  songItems.forEach((item, index) => {
+    const icon = item.querySelector('.songPlay');
+    const active = isPlaying && index === songIndex;
+    item.classList.toggle('active', index === songIndex);
+    icon.classList.toggle('fa-pause', active);
+    icon.classList.toggle('fa-play', !active);
   });
 }
 
-Array.from(document.getElementsByClassName('songPlay')).forEach((element)=>{
-  element.addEventListener('click' , (e)=>{
-                makeAllPlay();
-                songIndex = parseInt(( e.target.id )- 21);
-                e.target.classList.remove('fa-play');
-                e.target.classList.add('fa-pause');
-                music.src = items[typeIndex][songIndex].path;
-                music.currentTime = 0;
-                music.play();
-                masterPlay.classList.remove('fa-play');
-                masterPlay.classList.add('fa-pause');
+function renderTrack() {
+  const track = items[typeIndex][songIndex];
+  const artwork = assetPath(track.gif);
+  currentTrack.textContent = track.name;
+  playerTrack.textContent = track.name;
+  currentMood.textContent = `${list[typeIndex].dataset.label} · Track ${songIndex + 1} of ${items[typeIndex].length}`;
+  playerMood.textContent = list[typeIndex].dataset.label;
+  currentArtwork.src = artwork;
+  playerArtwork.src = artwork;
+  songItems.forEach((item, index) => {
+    item.querySelector('.songName').textContent = items[typeIndex][index].name;
+    item.classList.toggle('active', index === songIndex);
+    const icon = item.querySelector('.songPlay');
+    icon.classList.toggle('fa-pause', !music.paused && index === songIndex);
+    icon.classList.toggle('fa-play', music.paused || index !== songIndex);
+  });
+}
+
+function selectMood(index) {
+  const wasPlaying = !music.paused;
+  typeIndex = index;
+  songIndex = 0;
+  const moodName = list[index].dataset.label;
+  const moodKey = moodKeys[index];
+  const [accent, accentStrong, accentSoft, accentWash] = moodThemes[index];
+
+  document.body.dataset.mood = moodKey;
+  document.documentElement.style.setProperty('--accent', accent);
+  document.documentElement.style.setProperty('--accent-strong', accentStrong);
+  document.documentElement.style.setProperty('--accent-soft', accentSoft);
+  document.documentElement.style.setProperty('--accent-wash', accentWash);
+  document.getElementById('topMood').textContent = moodName;
+  document.getElementById('moodTitle').textContent = `${moodName} mode`;
+  document.getElementById('moodDescription').textContent = moodDescriptions[index];
+  list.forEach((mood, moodIndex) => {
+    const active = moodIndex === index;
+    mood.classList.toggle('active', active);
+    mood.setAttribute('aria-pressed', String(active));
+  });
+  gifitems.forEach((item, gifIndex) => {
+    item.querySelector('img').src = assetPath(items[index][gifIndex].gif);
+  });
+  music.src = assetPath(items[index][songIndex].path);
+  music.load();
+  progressBar.value = 0;
+  renderTrack();
+  setPlaying(false);
+  if (wasPlaying) {
+    playTrack();
+  }
+}
+
+async function playTrack() {
+  try {
+    await music.play();
+    setPlaying(true);
+  } catch (error) {
+    setPlaying(false);
+    currentMood.textContent = 'This track could not be played. Try another song.';
+    console.error('Unable to play the selected track.', error);
+  }
+}
+
+function changeTrack(index, autoplay = true) {
+  songIndex = (index + items[typeIndex].length) % items[typeIndex].length;
+  music.src = assetPath(items[typeIndex][songIndex].path);
+  music.load();
+  music.currentTime = 0;
+  progressBar.value = 0;
+  renderTrack();
+  if (autoplay) {
+    playTrack();
+  } else {
+    setPlaying(false);
+  }
+}
+
+function formatTime(seconds) {
+  if (!Number.isFinite(seconds)) {
+    return '0:00';
+  }
+  const minutes = Math.floor(seconds / 60);
+  const remainder = Math.floor(seconds % 60).toString().padStart(2, '0');
+  return `${minutes}:${remainder}`;
+}
+
+list.forEach((mood, index) => {
+  mood.addEventListener('click', () => selectMood(index));
+});
+
+songItems.forEach((item) => {
+  item.addEventListener('click', () => {
+    const index = Number(item.dataset.index);
+    if (index === songIndex && !music.paused) {
+      music.pause();
+      setPlaying(false);
+      return;
+    }
+    changeTrack(index);
   });
 });
 
-document.getElementById('next').addEventListener('click' , ()=>{
-  if(songIndex>7){
-    songIndex = 0 ;
+masterPlay.addEventListener('click', () => {
+  if (music.paused) {
+    playTrack();
+  } else {
+    music.pause();
+    setPlaying(false);
   }
-  else{
-    songIndex += 1 ;
-  }
-  music.src = items[typeIndex][songIndex].path;
-  music.currentTime = 0;
-  music.play();
-  masterPlay.classList.remove('fa-play');
-  masterPlay.classList.add('fa-pause');
 });
 
-
-document.getElementById('prev').addEventListener('click' , ()=>{
-  if(songIndex<=0){
-    songIndex = 0 ;
+document.getElementById('heroPlay').addEventListener('click', () => {
+  if (music.paused) {
+    playTrack();
+  } else {
+    music.pause();
+    setPlaying(false);
   }
-  else{
-    songIndex -= 1 ;
-  }
-  music.src = items[typeIndex][songIndex].path;
-  music.currentTime = 0;
-  music.play();
-  masterPlay.classList.remove('fa-play');
-  masterPlay.classList.add('fa-pause');
 });
+
+document.getElementById('next').addEventListener('click', () => {
+  changeTrack(songIndex + 1);
+});
+
+document.getElementById('prev').addEventListener('click', () => {
+  changeTrack(songIndex - 1);
+});
+
+music.addEventListener('timeupdate', () => {
+  if (Number.isFinite(music.duration) && music.duration > 0) {
+    progressBar.value = String((music.currentTime / music.duration) * 100);
+  }
+  document.getElementById('elapsedTime').textContent = formatTime(music.currentTime);
+});
+
+music.addEventListener('loadedmetadata', () => {
+  document.getElementById('durationTime').textContent = formatTime(music.duration);
+});
+
+music.addEventListener('ended', () => {
+  changeTrack(songIndex + 1);
+});
+
+music.addEventListener('error', () => {
+  setPlaying(false);
+});
+
+progressBar.addEventListener('input', () => {
+  if (Number.isFinite(music.duration) && music.duration > 0) {
+    music.currentTime = (Number(progressBar.value) / 100) * music.duration;
+  }
+});
+
+const fullscreenButton = document.getElementById('btn');
+fullscreenButton.addEventListener('click', async () => {
+  try {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else {
+      await document.documentElement.requestFullscreen();
+    }
+  } catch (error) {
+    console.error('Unable to change fullscreen mode.', error);
+  }
+});
+
+document.addEventListener('fullscreenchange', () => {
+  const isFullscreen = Boolean(document.fullscreenElement);
+  fullscreenButton.querySelector('i').className =
+    `fa-solid ${isFullscreen ? 'fa-compress' : 'fa-expand'}`;
+  fullscreenButton.querySelector('span').textContent =
+    isFullscreen ? 'Exit fullscreen' : 'Fullscreen';
+  fullscreenButton.setAttribute('aria-label', isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen');
+});
+
+renderTrack();
+setPlaying(false);
